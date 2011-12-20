@@ -22,11 +22,27 @@ public class URLTriggerService {
         return INSTANCE;
     }
 
+    /**
+     * @depreacated {@link ClientResponse#getEntity(Class)} can be called only once. Use {@link refreshContent(ClientResponse, String, URLTriggerEntry)}
+     */
+    @Deprecated
     public void refreshContent(ClientResponse clientResponse, URLTriggerEntry entry) throws URLTriggerException {
-        initContent(clientResponse, entry);
+        initContent(clientResponse, clientResponse.getEntity(String.class), entry);
     }
 
+    public void refreshContent(ClientResponse clientResponse, String stringContent, URLTriggerEntry entry) throws URLTriggerException {
+        initContent(clientResponse, stringContent, entry);
+    }
+
+    /**
+     * @depreacated {@link ClientResponse#getEntity(Class)} can be called only once. Use {@link initContent(ClientResponse, String, URLTriggerEntry)}
+     */
+    @Deprecated
     public void initContent(ClientResponse clientResponse, URLTriggerEntry entry) throws URLTriggerException {
+        initContent(clientResponse, clientResponse.getEntity(String.class), entry);
+    }
+
+    public void initContent(ClientResponse clientResponse, String stringContent, URLTriggerEntry entry) throws URLTriggerException {
 
         if (clientResponse == null) {
             throw new NullPointerException("The given clientResponse object is not set.");
@@ -45,7 +61,6 @@ public class URLTriggerService {
 
         if (entry.isInspectingContent()) {
             for (final URLTriggerContentType type : entry.getContentTypes()) {
-                String stringContent = clientResponse.getEntity(String.class);
                 if (stringContent == null) {
                     throw new URLTriggerException("The URL content is empty.");
                 }
@@ -55,7 +70,15 @@ public class URLTriggerService {
 
     }
 
+    /**
+     * @depreacated {@link ClientResponse#getEntity(Class)} can be called only once. Use {@link isSchedulingForURLEntry(ClientResponse, String, URLTriggerEntry, URLTriggerLog)}
+     */
+    @Deprecated
     public boolean isSchedulingForURLEntry(ClientResponse clientResponse, URLTriggerEntry entry, URLTriggerLog log) throws URLTriggerException {
+        return isSchedulingForURLEntry(clientResponse, clientResponse.getEntity(String.class), entry, log);
+    }
+
+    public boolean isSchedulingForURLEntry(ClientResponse clientResponse, String stringContent, URLTriggerEntry entry, URLTriggerLog log) throws URLTriggerException {
         //Get the url
         String url = entry.getUrl();
 
@@ -90,11 +113,10 @@ public class URLTriggerService {
         if (entry.isInspectingContent()) {
             log.info("Inspecting the content");
             for (final URLTriggerContentType type : entry.getContentTypes()) {
-                String xmlString = clientResponse.getEntity(String.class);
-                if (xmlString == null) {
+                if (stringContent == null) {
                     throw new URLTriggerException("The URL content is empty.");
                 }
-                boolean isTriggered = type.isTriggeringBuildForContent(xmlString, log);
+                boolean isTriggered = type.isTriggeringBuildForContent(stringContent, log);
                 if (isTriggered) {
                     return true;
                 }

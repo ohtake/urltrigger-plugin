@@ -154,10 +154,11 @@ public class URLTrigger extends Trigger<BuildableItem> implements Serializable {
             String url = getURLValue(entry, executionNode, log);
             log.info(String.format("Invoking the url: \n %s", url));
             ClientResponse clientResponse = client.resource(url).get(ClientResponse.class);
+            String stringContent = clientResponse.getEntity(String.class);
 
             URLTriggerService urlTriggerService = URLTriggerService.getInstance();
-            if (urlTriggerService.isSchedulingForURLEntry(clientResponse, entry, log)) {
-                urlTriggerService.refreshContent(clientResponse, entry);
+            if (urlTriggerService.isSchedulingForURLEntry(clientResponse, stringContent, entry, log)) {
+                urlTriggerService.refreshContent(clientResponse, stringContent, entry);
                 return true;
             }
         }
@@ -279,7 +280,8 @@ public class URLTrigger extends Trigger<BuildableItem> implements Serializable {
                 Client client = getClientObject(entry, null);
                 String url = entry.getUrl();
                 ClientResponse clientResponse = client.resource(url).get(ClientResponse.class);
-                service.initContent(clientResponse, entry);
+                String stringContent = clientResponse.getEntity(String.class);
+                service.initContent(clientResponse, stringContent, entry);
             }
         } catch (URLTriggerException urle) {
             LOGGER.log(Level.SEVERE, "Error on trigger startup " + urle.getMessage());
